@@ -1,0 +1,30 @@
+{
+  "name": "exhibition-interactive-gallery",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "node ./fuse.js",
+    "build": "node ./fuse.js production"
+  },
+  "repository": "git+https://github.com/vadimgoncharov/exhibition-interactive-gallery.git",
+  "author": "Vadim Goncharov <vg@vadimgoncharov.ru>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vadimgoncharov/exhibition-interactive-gallery/issues"
+  },
+  "homepage": "https://github.com/vadimgoncharov/exhibition-interactive-gallery#readme",
+  "devDependencies": {
+    "autoprefixer": "7.1.4",
+    "fuse-box": "2.2.31",
+    "node-sass": "4.5.3",
+    "postcss": "6.0.11",
+    "typescript": "2.5.2",
+    "uglify-js": "3.1.0"
+  },
+  "dependencies": {
+  }
+}
