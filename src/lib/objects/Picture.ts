@@ -1,26 +1,24 @@
-import drawImageInPerspective from './drawImageInPerspective';
+import drawImageInPerspective from '../helpers/drawImageInPerspective';
 import Point from './Point';
 
-import IPictureOptions from './IPictureOptions';
+import TPictureOptions from '../types/TPictureOptions';
 
 export default class Picture {
-  private image: HTMLImageElement;
-  private canvas: HTMLCanvasElement;
-  private original: {
+  private originalCoords: {
     topLeft: Point;
     topRight: Point;
     bottomLeft: Point;
     bottomRight: Point;
   };
-  private reflection: {
+  private reflectionCoords: {
     topLeft: Point;
     topRight: Point;
     bottomLeft: Point;
     bottomRight: Point;
   };
-  private options: IPictureOptions;
+  private options: TPictureOptions;
 
-  constructor(options: IPictureOptions) {
+  constructor(options: TPictureOptions) {
     this.options = options;
     this.calculateValuesFromOptions();
   }
@@ -28,13 +26,14 @@ export default class Picture {
   private calculateValuesFromOptions() {
     const {startX, startY, width, height, topRightOffset, bottomRightOffset} = this.options;
 
-    this.original = {
+    this.originalCoords = {
       topLeft: new Point(startX, startY),
       topRight: new Point(startX + width, startY - topRightOffset),
       bottomRight: new Point(startX + width, startY + height + bottomRightOffset),
       bottomLeft: new Point(startX, startY + height),
     };
-    this.reflection = {
+
+    this.reflectionCoords = {
       topLeft: new Point(startX, startY - bottomRightOffset + height + bottomRightOffset),
       topRight: new Point(startX + width, startY + height + bottomRightOffset),
       bottomRight: new Point(startX + width, startY + height + height + bottomRightOffset),
@@ -44,14 +43,14 @@ export default class Picture {
 
   private drawOriginalImage() {
     const {image, canvas} = this.options;
-    const data = this.original;
+    const coords = this.originalCoords;
     drawImageInPerspective(
       image,
       canvas,
-      data.topLeft.x, data.topLeft.y,
-      data.bottomLeft.x, data.bottomLeft.y,
-      data.topRight.x, data.topRight.y,
-      data.bottomRight.x, data.bottomRight.y,
+      coords.topLeft.x, coords.topLeft.y,
+      coords.bottomLeft.x, coords.bottomLeft.y,
+      coords.topRight.x, coords.topRight.y,
+      coords.bottomRight.x, coords.bottomRight.y,
       false,
       false,
     );
@@ -59,14 +58,14 @@ export default class Picture {
 
   private drawReflectionImage() {
     const {image, canvas} = this.options;
-    const data = this.reflection;
+    const coords = this.reflectionCoords;
     drawImageInPerspective(
       image,
       canvas,
-      data.topLeft.x, data.topLeft.y,
-      data.bottomLeft.x, data.bottomLeft.y,
-      data.topRight.x, data.topRight.y,
-      data.bottomRight.x, data.bottomRight.y,
+      coords.topLeft.x, coords.topLeft.y,
+      coords.bottomLeft.x, coords.bottomLeft.y,
+      coords.topRight.x, coords.topRight.y,
+      coords.bottomRight.x, coords.bottomRight.y,
       false,
       true,
     );
@@ -74,7 +73,7 @@ export default class Picture {
 
   private drawReflectionImageGradient() {
     const {canvas} = this.options;
-    const data = this.reflection;
+    const data = this.reflectionCoords;
     const ctx = canvas.getContext('2d');
 
     ctx.save();
@@ -103,7 +102,7 @@ export default class Picture {
 
   private drawOriginalImageBorder() {
     const {canvas, borderColor, borderWidth} = this.options;
-    const data = this.original;
+    const data = this.originalCoords;
     const ctx = canvas.getContext('2d');
 
     ctx.save();

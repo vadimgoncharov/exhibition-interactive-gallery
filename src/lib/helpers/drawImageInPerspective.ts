@@ -1,7 +1,8 @@
+// @See https://stackoverflow.com/a/37236664/7605833
+
 const tmpCanvas: HTMLCanvasElement = document.createElement('canvas');
 const tmpContext = tmpCanvas.getContext('2d');
 
-// @See https://stackoverflow.com/a/37236664/7605833
 function drawImageInPerspective(
   srcImg: HTMLImageElement,
   targetCanvas: HTMLCanvasElement,

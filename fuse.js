@@ -1,79 +1,108 @@
 const {
   FuseBox,
-  CSSResourcePlugin,
-  CSSPlugin,
-  SassPlugin,
-  PostCSSPlugin,
-  ImageBase64Plugin,
   QuantumPlugin,
   WebIndexPlugin,
   Sparky,
 } = require("fuse-box");
-const autoprefixer = require('autoprefixer');
+const fse = require('fs-extra');
 
-const DEV_DIST_DIR = 'dist';
-const PROD_DIST_DIR = 'docs';
+const PACKAGE_NAME = 'exhibition-interactive-gallery';
 
-const distDir = () => {
-  return isProduction ? PROD_DIST_DIR : DEV_DIST_DIR;
+const EXAMPLE_DEV_DIST_DIR = 'dev/docs';
+const EXAMPLE_PROD_DIST_DIR = 'docs';
+
+const LIB_DEV_DIST_DIR = 'dev/dist';
+const LIB_PROD_DIST_DIR = 'dist';
+
+const distDirExample = () => {
+  return isProduction ? EXAMPLE_PROD_DIST_DIR : EXAMPLE_DEV_DIST_DIR;
+};
+const distDirLib = () => {
+  return isProduction ? LIB_PROD_DIST_DIR : LIB_DEV_DIST_DIR;
 };
 
-let fuse, app, vendor, isProduction;
+let fuseExample, fuseLib, appExample, appLib, vendor, isProduction;
 
 Sparky.task("config", () => {
-  fuse = new FuseBox({
+  fuseExample = new FuseBox({
     homeDir: "src/",
-    sourceMaps: !isProduction,
-    hash: isProduction,
-    output: `${distDir()}/$name.js`,
+    sourceMaps: {
+      inline: false,
+    },
+    hash: false,
+    output: `${distDirExample()}/$name.js`,
     plugins: [
-      [
-        SassPlugin(),
-        PostCSSPlugin({
-          plugins: [autoprefixer],
-        }),
-        CSSResourcePlugin({
-          dist: `${distDir()}/assets`,
-          resolve: (f) => `/assets/${f}`,
-        }),
-        CSSPlugin(),
-      ],
-      ImageBase64Plugin({
-        useDefault: true,
-      }),
       WebIndexPlugin({
-        template: "src/index.html"
+        template: "src/example/index.html",
+        path: '.',
       }),
       isProduction && QuantumPlugin({
         removeExportsInterop: true,
         uglify: true,
         treeshake: true,
+        bakeApiIntoBundle: 'index',
+        containedAPI : true,
+        target: 'browser',
       }),
-
     ],
   });
-// vendor
-  vendor = fuse
-    .bundle("vendor")
-    .instructions("~ index.tsx")
+
+  fuseLib = new FuseBox({
+    homeDir: "src/",
+    sourceMaps: {
+      inline: false,
+    },
+    hash: false,
+    output: `${distDirLib()}/$name.js`,
+    package: {
+      // same as in package.json (this is important)
+      name: PACKAGE_NAME,
+      main: 'src/lib/index.ts',
+    },
+    globals: {
+      [PACKAGE_NAME]: '*',
+      // https://github.com/fuse-box/fuse-box/pull/200
+      // Doesn't work
+      // 'exhibition-interactive-gallery': {
+      //   'ExhibitionInteractiveGallery': 'ExhibitionInteractiveGallery',
+      // },
+    },
+    plugins: [
+      isProduction && QuantumPlugin({
+        removeExportsInterop: true,
+        uglify: true,
+        treeshake: true,
+        bakeApiIntoBundle: `${PACKAGE_NAME}.min.js`,
+        containedAPI : true,
+        target: 'browser',
+      }),
+    ],
+  });
 
 // bundle app
-  app = fuse.bundle("app").instructions("> [index.tsx]")
+  appExample = fuseExample.bundle("index").instructions("> example/index.ts");
+  appLib = fuseLib.bundle(`${PACKAGE_NAME}.min.js`).instructions("!> lib/index.ts");
 });
 
-Sparky.task("default", ["clean", "config"], () => {
-  fuse.dev();
+Sparky.task("default", ["clean", "config", "copy-assets"], () => {
+  fuseExample.dev();
 // add dev instructions
-  app.watch().hmr()
-  return fuse.run();
+  appExample.watch().hmr();
+  return fuseExample.run();
 });
 
 Sparky.task("clean", () => {
-  return Sparky.src("dist/").clean("dist/");
+  return Sparky.src("dev/").clean("dev/");
+});
+Sparky.task('copy-assets', () => {
+  return fse.copy('docs/assets', 'dev/docs/assets');
 });
 Sparky.task("prod-env", ["clean"], () => { isProduction = true })
 Sparky.task("production", ["prod-env", "config"], () => {
   // comment out to prevent dev server from running (left for the demo)
   // fuse.dev();
-  return fuse.run();
+  return Promise.all([
+    fuseExample.run(),
+    fuseLib.run()
+  ]);
 });

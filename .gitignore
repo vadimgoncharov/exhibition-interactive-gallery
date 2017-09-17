@@ -6,7 +6,6 @@
 node_modules/
 .language-cache/
 .vscode/
-dist/
 yarn.lock
 build/*
 !build/index.html
@@ -14,7 +13,7 @@ out.js
 .DS_Store
 .tmp/
 .idea/
-dist/
 sourcemaps.js.map
 .fusebox
 npm-debug.log
+dev/

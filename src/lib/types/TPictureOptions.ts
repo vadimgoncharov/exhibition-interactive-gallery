@@ -1,4 +1,4 @@
-export default interface IPictureOptions {
+type TPictureOptions = {
   image: HTMLImageElement;
   canvas: HTMLCanvasElement;
   startX: number,
@@ -11,3 +11,4 @@ export default interface IPictureOptions {
   borderWidth?: number,
 };
 
+export default TPictureOptions;
